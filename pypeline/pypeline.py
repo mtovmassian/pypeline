@@ -3,7 +3,7 @@ from typing import Tuple, List, Generator, Callable
 
 
 @coroutine
-def pipe_head(target):
+def _pipe_head(target):
     """
         Initial coroutine which starts the pipeline and redirects
         the data to the first process pipe.
@@ -14,7 +14,7 @@ def pipe_head(target):
 
 
 @coroutine
-def pipe_tail(sink):
+def _pipe_tail(sink):
     """
         Last coroutine which ends up the pipeline and collects data output
         into a sink.
@@ -25,7 +25,7 @@ def pipe_tail(sink):
 
 
 @coroutine
-def pipe(func: Callable, target: Generator):
+def _pipe(func: Callable, target: Generator):
     """
         Coroutine used to handle data processing.
     """
@@ -35,7 +35,7 @@ def pipe(func: Callable, target: Generator):
         target.send(data_transformed)
 
 
-def init_sink() -> Callable:
+def _init_sink() -> Callable:
     """
         Closure used to provide a sink for pipeline output storage.
     """
@@ -53,13 +53,13 @@ def create(funcs: List) -> Tuple[Generator, List]:
     """
         Initialize pipeline.
     """
-    sink = init_sink()
+    sink = _init_sink()
     call_chain = None
     funcs = reversed(funcs)
     for index, func in enumerate(funcs):
         if index == 0:
-            call_chain = pipe(func, pipe_tail(sink))
+            call_chain = _pipe(func, _pipe_tail(sink))
         else:
-            call_chain = pipe(func, call_chain)
-    pipeline = pipe_head(call_chain)
+            call_chain = _pipe(func, call_chain)
+    pipeline = _pipe_head(call_chain)
     return pipeline, sink
